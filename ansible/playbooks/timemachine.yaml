@@ -1,0 +1,47 @@
+---
+- name: Setup nodes with various configs
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Ensure default user account absent
+    remote_user: eflee
+    user:
+      name: pi
+      state: absent
+
+  
+  - name: Ensure unattended upgrades installed
+    apt: 
+      name: 
+      - unattended-upgrades
+
+  - name: Configure unattended-upgrades
+    lineinfile:
+      path: /etc/apt/apt.conf.d/50unattended-upgrades
+      state: present
+      regexp: '^Unattended-Upgrade::Automatic-Reboot'
+      line: 'Unattended-Upgrade::Automatic-Reboot "true";'
+
+  - name: setup passwordless sudo for %sudo
+    lineinfile:
+      path: /etc/sudoers
+      state: present
+      regexp: '^%sudo(\s)*ALL='
+      line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
+
+  - name: Installing ops packages
+    apt: 
+      name: 
+      - net-tools
+      - vim
+      - git
+      - python3
+      - timeshift
+
+  - name: Run apt update && apt upgrade
+    apt:
+      update_cache: yes
+      cache_valid_time: 3600
+      upgrade: full
+      autoclean: yes

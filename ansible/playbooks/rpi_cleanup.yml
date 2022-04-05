@@ -1,0 +1,12 @@
+---
+- name: Apply bootstrap config
+  remote_user: eflee
+  hosts: rpi
+
+  become: yes
+
+  tasks:
+  - name: Removing default user account
+    user:
+      name: "{{ default_username }}"
+      state: absent

@@ -1,0 +1,24 @@
+---
+- name: Setup node with various configs
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Ensure eflee group present
+    group:
+      name: eflee
+
+  - name: Ensure eflee present
+    user:
+      name: eflee
+      shell: /bin/bash
+      groups: eflee, adm, sudo, users
+      append: yes
+      create_home: yes
+      password: "$6$5LfdZj1fMziRd.J9$eOSqqRO97Uj3KkzEVzFgR3datjR.49PzONzFjTOdKi21vA35CUHtzbvZOYJ/ebbGDQWZrAH7xwB8rdjd08sVT."
+  
+  - name: Set/Update authorized keys for efleefrom GitHub
+    authorized_key:
+      user: eflee
+      state: present
+      key: https://github.com/eflee.keys

@@ -1,0 +1,142 @@
+---
+- name: Setup nodes with various configs
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: 'Ensure hostname set from inventory {{ inventory_hostname }}'
+    hostname:
+      name: '{{ inventory_hostname }}'
+
+  - name: Ensure default user account absent
+    remote_user: eflee
+    user:
+      name: ubuntu
+      state: absent
+
+  - name: adding existing user eflee to group sudo
+    user:
+      name: eflee
+      groups: 
+        - sudo 
+        - microk8s 
+      append: yes
+
+  - name: Set/Update authorized keys for efleefrom GitHub
+    authorized_key:
+      user: eflee
+      state: present
+      key: https://github.com/eflee.keys
+
+  - name: Enable cgroup via boot commandline if not already enabled
+    lineinfile:
+      path: /boot/firmware/cmdline.txt
+      backrefs: yes
+      regexp: '^((?!.*\bcgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory\b).*)$'
+      line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
+
+  - name: Ensure unattended upgrades installed
+    apt: 
+      name: 
+      - unattended-upgrades
+
+  - name: Configure unattended-upgrades
+    lineinfile:
+      path: /etc/apt/apt.conf.d/50unattended-upgrades
+      state: present
+      regexp: '^Unattended-Upgrade::Automatic-Reboot'
+      line: 'Unattended-Upgrade::Automatic-Reboot "true";'
+
+  - name: setup passwordless sudo for %sudo
+    lineinfile:
+      path: /etc/sudoers
+      state: present
+      regexp: '^%sudo(\s)*ALL='
+      line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
+
+  - name: Place bootstrap files
+    copy: 
+      src: ../files/bootstrap/
+      dest: /
+
+  - name: Install microk8s with option --classic
+    community.general.snap:
+      name: microk8s
+      classic: yes
+
+  - name: Removing timeshift
+    apt: 
+      name: timeshift
+      state: absent
+
+  - name: Installing ops packages
+    apt: 
+      name: 
+      - net-tools
+      - vim
+      - git
+      - python3
+      - timeshift
+
+  - name: Run apt update && apt upgrade
+    apt:
+      update_cache: yes
+      cache_valid_time: 3600
+      upgrade: full
+      autoclean: yes
+      autoremove: yes
+
+#  - name: Ensure UFW NOT installed
+#    apt: 
+#      name: 
+#      - ufw
+#      state: absent
+#
+#  - name: Ensure UFW installed
+#    apt: 
+#      name: 
+#      - ufw
+#  
+#  - name: Allow SSH from Local Networks
+#    ufw:
+#      rule: allow
+#      port: '22'
+#      src: '{{ item }}'
+#    loop:
+#      - 10.0.0.0/8
+#      - 172.16.0.0/12
+#      - 192.168.0.0/16
+#
+  - name: Disable UFW
+    ufw:
+      state: disabled
+
+#  - name: Allow Kubernetes API from local networks
+#    ufw:
+#      rule: allow
+#      port: '6443'
+#      src: '{{ item }}'
+#    loop:
+#      - 10.0.0.0/8
+#      - 172.16.0.0/12
+#      - 192.168.0.0/16
+#
+#  - name: Allow Flannel VXLAN (K3s)
+#    ufw:
+#      rule: allow
+#      port: '8472'
+#      src: '{{ item }}'
+#    loop:
+#      - 10.0.0.0/8
+#      - 172.16.0.0/12
+#      - 192.168.0.0/16
+#
+#  - name: Allow kubelet from Local Networks
+#    ufw:
+#      rule: allow
+#      port: '10250'
+#      src: '{{ item }}'
+#    loop:
+#      - 10.0.0.0/8
+#      - 172.16.0.0/12
+#      - 192.168.0.0/16
