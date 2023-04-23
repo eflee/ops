@@ -1,0 +1,76 @@
+---
+- name: Setup nodes with various configs
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: 'Ensure hostname set from inventory {{ inventory_hostname }}'
+    hostname:
+      name: '{{ inventory_hostname }}'
+
+  - name: Ensure default user account absent
+    remote_user: eflee
+    user:
+      name: ubuntu
+      state: absent
+
+  - name: adding existing user eflee to group sudo
+    user:
+      name: eflee
+      groups: 
+        - sudo 
+      append: yes
+
+  - name: Set/Update authorized keys for efleefrom GitHub
+    authorized_key:
+      user: eflee
+      state: present
+      key: https://github.com/eflee.keys
+
+  - name: Ensure unattended upgrades installed
+    apt: 
+      name: 
+      - unattended-upgrades
+
+  - name: Configure unattended-upgrades
+    lineinfile:
+      path: /etc/apt/apt.conf.d/50unattended-upgrades
+      state: present
+      regexp: '^Unattended-Upgrade::Automatic-Reboot'
+      line: 'Unattended-Upgrade::Automatic-Reboot "true";'
+
+  - name: setup passwordless sudo for %sudo
+    lineinfile:
+      path: /etc/sudoers
+      state: present
+      regexp: '^%sudo(\s)*ALL='
+      line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
+
+  - name: Place bootstrap files
+    copy: 
+      src: ../files/bootstrap/
+      dest: /
+
+  - name: Installing ops packages
+    apt: 
+      name: 
+      - net-tools
+      - vim
+      - git
+      - python3
+      - timeshift
+
+  - name: Run apt update && apt upgrade
+    apt:
+      update_cache: yes
+      cache_valid_time: 3600
+      upgrade: full
+      autoclean: yes
+      autoremove: yes
+
+  - name: Ensure UFW NOT installed
+    apt: 
+      name: 
+      - ufw
+      state: absent
+

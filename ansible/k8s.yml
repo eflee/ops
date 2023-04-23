@@ -9,4 +9,7 @@ all:
         rpi-4-4.elif.sh:
         rpi-4-5.elif.sh:
         rpi-4-6.elif.sh:
+        rpi-4-7.elif.sh:
+        rpi-4-8.elif.sh:
+        rpi-4-9.elif.sh:
  

@@ -19,7 +19,6 @@
       name: eflee
       groups: 
         - sudo 
-        - microk8s 
       append: yes
 
   - name: Set/Update authorized keys for efleefrom GitHub
@@ -64,6 +63,13 @@
       name: microk8s
       classic: yes
 
+  - name: adding existing user eflee to group microk8s
+    user:
+      name: eflee
+      groups: 
+        - microk8s 
+      append: yes
+
   - name: Removing timeshift
     apt: 
       name: timeshift
@@ -86,12 +92,22 @@
       autoclean: yes
       autoremove: yes
 
-#  - name: Ensure UFW NOT installed
-#    apt: 
-#      name: 
-#      - ufw
-#      state: absent
-#
+  - name: Ensure UFW NOT installed
+    apt: 
+      name: 
+      - ufw
+      state: absent
+
+  - name: Ensure iptables-persistent upgrades installed
+    apt:
+      name:
+      - iptables-persistent
+
+  - name: Set the policy for the FORWARD chain to ACCEPT
+    ansible.builtin.iptables:
+      chain: FORWARD
+      policy: ACCEPT
+
 #  - name: Ensure UFW installed
 #    apt: 
 #      name: 
@@ -107,10 +123,10 @@
 #      - 172.16.0.0/12
 #      - 192.168.0.0/16
 #
-  - name: Disable UFW
-    ufw:
-      state: disabled
-
+#  - name: Disable UFW
+#    ufw:
+#      state: disabled
+#
 #  - name: Allow Kubernetes API from local networks
 #    ufw:
 #      rule: allow

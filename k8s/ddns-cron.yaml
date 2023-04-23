@@ -1,10 +1,10 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: ddns
   namespace: ops
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "* * * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -13,7 +13,7 @@ spec:
           containers:
           - name: ddns
             image: ghcr.io/eflee/r53-ddns
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
             env:
               - name: ZONE_ID   
                 value: Z06392827G1HWA3QN458

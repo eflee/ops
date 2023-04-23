@@ -1,0 +1,20 @@
+---
+all:
+  children:
+    k8s:
+      hosts:
+        rpi-4-1.elif.sh:
+        rpi-4-2.elif.sh:
+        rpi-4-3.elif.sh:
+        rpi-4-4.elif.sh:
+        rpi-4-5.elif.sh:
+        rpi-4-6.elif.sh:
+        rpi-4-7.elif.sh:
+        rpi-4-8.elif.sh:
+        rpi-4-9.elif.sh:
+    storage:
+      hosts:
+        helium.elif.sh:
+        argon.elif.sh:
+        xenon.elif.sh:
+ 
